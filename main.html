@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To do List</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="box">
+            <h1>These are your assignments.</h1>
+            <div id="tasks"></div>
+            <a href="create_task.html"><button>Create New Task</button></a>
+            <button onClick="(function(){
+                window.location.replace('index.html');
+            })()">Log Out</button>
+        </div>
+    </div>
+    <script>
+        function getCookie(name) {
+            let cookie = {};
+            document.cookie.split(';').forEach(function(el) {
+                let split = el.split('=');
+                cookie[split[0].trim()] = split.slice(1).join("=");
+            })
+            return cookie[name];
+        }
+
+        function displayTasks(tasks) {
+            const container = document.getElementById("tasks");
+            container.innerHTML = ""; // Clear existing tasks
+            
+            if (tasks.length === 0) {
+                container.innerHTML = "<p>No tasks found. Create a new task!</p>";
+                return;
+            }
+
+            tasks.forEach(task => {
+                const taskElement = document.createElement("div");
+                taskElement.className = "task-item";
+                taskElement.innerHTML = `
+                    <p><strong>Task:</strong> ${task.task}</p>
+                    <p><strong>Deadline:</strong> ${task.deadline}</p>
+                    <hr>
+                `;
+                container.appendChild(taskElement);
+            });
+        }
+
+        const username = getCookie('username');
+        if (!username) {
+            window.location.href = "index.html";
+        }
+
+        axios.get('http://127.0.0.1:8000/get_tasks/?name=' + username)
+        .then(function (response) {
+            if (response.data.tasks) {
+                displayTasks(response.data.tasks);
+            } else {
+                document.getElementById("tasks").innerHTML = "<p>No tasks found. Create a new task!</p>";
+            }
+        })
+        .catch(function (error) {
+            console.log(error.response ? error.response.data : error.message);
+            document.getElementById("tasks").innerHTML = "<p>Error loading tasks. Please try again later.</p>";
+        });
+    </script>
+</body>
+</html>
